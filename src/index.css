@@ -75,6 +75,16 @@
     padding-top: env(safe-area-inset-top);
   }
 
+  /* Ocultar scrollbar mantendo funcionalidade de scroll */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Utilitários de fonte profissional */
   .font-display {
     font-family: var(--font-display);

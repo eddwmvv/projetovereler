@@ -16,6 +16,7 @@ interface StatCardProps {
   variant?: 'empresas' | 'projetos' | 'municipios' | 'escolas' | 'alunos';
   onClick?: () => void;
   href?: string;
+  compact?: boolean;
 }
 
 // Estilos sutis e profissionais para cada tipo de estatística
@@ -65,38 +66,55 @@ export const StatCard = ({
   trend,
   variant = 'empresas',
   onClick,
-  href
+  href,
+  compact = false
 }: StatCardProps) => {
   const isClickable = onClick || href;
   const styles = cardVariants[variant];
 
   const content = (
     <Card className={cn(
-      'relative overflow-hidden transition-all duration-300 group',
-      isClickable ? 'hover:shadow-xl cursor-pointer hover:scale-[1.02]' : 'hover:shadow-lg',
+      'relative overflow-hidden transition-all duration-300 group h-full',
+      isClickable ? 'hover:shadow-xl cursor-pointer hover:scale-[1.02] active:scale-[0.98]' : 'hover:shadow-lg',
       styles.card,
       'border shadow-md'
     )}>
       {/* Efeito sutil de brilho */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
 
-      <CardContent className="relative p-6">
-        <div className="flex items-start justify-between mb-5">
-          <div className="space-y-2 flex-1 min-w-0">
+      <CardContent className={cn("relative", compact ? "p-4" : "p-6")}>
+        <div className={cn("flex items-start justify-between", compact ? "mb-3" : "mb-5")}>
+          <div className="space-y-1.5 flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className={cn("text-sm font-medium tracking-wide uppercase", styles.title)}>
+              <h3 className={cn(
+                "font-medium tracking-wide uppercase",
+                compact ? "text-xs" : "text-sm",
+                styles.title
+              )}>
                 {title}
               </h3>
               {isClickable && (
-                <ArrowUpRight className={cn("w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5", styles.title)} />
+                <ArrowUpRight className={cn(
+                  "transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5",
+                  compact ? "w-3 h-3" : "w-3 h-3",
+                  styles.title
+                )} />
               )}
             </div>
             <div className="flex items-baseline gap-2">
-              <span className={cn("text-4xl font-bold tracking-tight", styles.value)}>
+              <span className={cn(
+                "font-bold tracking-tight",
+                compact ? "text-3xl" : "text-4xl",
+                styles.value
+              )}>
                 {typeof value === 'number' ? value.toLocaleString('pt-BR') : value}
               </span>
               {subtitle && (
-                <span className={cn("text-sm font-medium", styles.subtitle)}>
+                <span className={cn(
+                  "font-medium",
+                  compact ? "text-xs" : "text-sm",
+                  styles.subtitle
+                )}>
                   {subtitle}
                 </span>
               )}
@@ -104,12 +122,13 @@ export const StatCard = ({
             {trend && (
               <div className="flex items-center gap-1.5">
                 {trend.isPositive ? (
-                  <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <TrendingUp className={cn("text-emerald-600 dark:text-emerald-400", compact ? "w-3 h-3" : "w-4 h-4")} />
                 ) : (
-                  <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <TrendingDown className={cn("text-red-600 dark:text-red-400", compact ? "w-3 h-3" : "w-4 h-4")} />
                 )}
                 <span className={cn(
-                  "text-xs font-semibold",
+                  "font-semibold",
+                  compact ? "text-[10px]" : "text-xs",
                   trend.isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
                 )}>
                   {trend.isPositive ? '+' : ''}{trend.value.toFixed(1)}% {trend.period || 'vs mês anterior'}
@@ -120,10 +139,11 @@ export const StatCard = ({
 
           {/* Ícone com gradiente sutil */}
           <div className={cn(
-            'relative w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md',
+            'relative rounded-xl flex items-center justify-center flex-shrink-0 shadow-md',
+            compact ? 'w-11 h-11' : 'w-14 h-14',
             styles.icon
           )}>
-            <Icon className="w-7 h-7 relative z-10" />
+            <Icon className={cn("relative z-10", compact ? "w-5 h-5" : "w-7 h-7")} />
           </div>
         </div>
 

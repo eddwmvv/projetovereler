@@ -299,30 +299,110 @@ export function EstoqueArmacoesPage() {
         </div>
       </div>
 
-      {/* Resumo por Tamanho - Cards Responsivos */}
+      {/* Resumo por Tamanho - Scroll Horizontal Infinito Mobile */}
       <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Estoque por Tamanho</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Estoque por Tamanho</h2>
+          <span className="md:hidden text-xs text-muted-foreground">Arraste →</span>
+        </div>
         
-        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {/* Mobile: Scroll Horizontal */}
+        <div className="md:hidden -mx-4">
+          <div className="overflow-x-auto px-4 pb-4 scrollbar-hide">
+            <div className="flex gap-3 min-w-max">
+              {resumoPorTamanho.map(([nome, stats]) => (
+                <div 
+                  key={nome} 
+                  className="w-[160px] flex-shrink-0 rounded-xl border bg-white dark:bg-slate-900 p-4 shadow-md hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+                >
+                  {/* Tamanho Badge - Maior e mais destacado */}
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="w-[88px] h-[88px] rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
+                      <span className="text-2xl font-black text-white uppercase tracking-tight">
+                        {nome}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Label */}
+                  <div className="text-center mb-2">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Disponíveis</div>
+                  </div>
+
+                  {/* Número grande */}
+                  <div className="text-center mb-2">
+                    <div className="text-[42px] leading-none font-black bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">
+                      {stats.disponiveis}
+                    </div>
+                  </div>
+
+                  {/* Total */}
+                  <div className="text-center mb-3">
+                    <div className="text-sm text-muted-foreground">
+                      de <span className="font-bold text-foreground">{stats.total}</span> total
+                    </div>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div className="w-full">
+                    <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-full transition-all duration-500"
+                        style={{ width: `${stats.total > 0 ? (stats.disponiveis / stats.total) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {resumoPorTamanho.length === 0 && (
+                <div className="w-full text-sm text-muted-foreground text-center py-8">
+                  Nenhuma armação cadastrada ainda.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: Grid */}
+        <div className="hidden md:grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {resumoPorTamanho.map(([nome, stats]) => (
-            <div key={nome} className="border rounded-lg p-3 md:p-4 bg-card hover:shadow-md transition-shadow">
-              <div className="flex items-center gap-3">
-                {/* Tamanho */}
-                <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                  <span className="text-2xl md:text-3xl font-extrabold text-blue-600 dark:text-blue-400 uppercase">
+            <div 
+              key={nome} 
+              className="group rounded-2xl border-2 border-transparent bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-5 shadow-md hover:shadow-xl hover:border-blue-500/30 hover:scale-[1.02] transition-all duration-300"
+            >
+              <div className="flex items-start gap-4">
+                {/* Tamanho Badge */}
+                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                  <span className="text-2xl font-black text-white uppercase tracking-tight">
                     {nome}
                   </span>
                 </div>
 
                 {/* Stats */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Disponíveis</div>
-                  <div className="text-3xl md:text-4xl font-extrabold text-green-600 dark:text-green-400">
+                <div className="flex-1 space-y-1">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Disponíveis</div>
+                  <div className="text-4xl font-black bg-gradient-to-r from-emerald-500 to-green-500 bg-clip-text text-transparent">
                     {stats.disponiveis}
                   </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    de {stats.total} total
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground">de</span>
+                    <span className="text-sm font-bold text-foreground">{stats.total}</span>
+                    <span className="text-xs text-muted-foreground">total</span>
                   </div>
+                </div>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="mt-4">
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-emerald-500 to-green-400 rounded-full transition-all duration-500"
+                    style={{ width: `${stats.total > 0 ? (stats.disponiveis / stats.total) * 100 : 0}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1.5 text-[10px] text-muted-foreground">
+                  <span>{stats.utilizadas} em uso</span>
+                  <span>{stats.outros > 0 ? `${stats.outros} outros` : ''}</span>
                 </div>
               </div>
             </div>
@@ -396,8 +476,8 @@ export function EstoqueArmacoesPage() {
           </Table>
         </div>
 
-        {/* Mobile: Cards */}
-        <div className="md:hidden space-y-2">
+        {/* Mobile: Cards melhorados */}
+        <div className="md:hidden space-y-2.5">
           {armacoesFiltradas.length === 0 ? (
             <div className="border rounded-lg p-8 text-center">
               <EmptyState
@@ -425,21 +505,43 @@ export function EstoqueArmacoesPage() {
             </div>
           ) : (
             armacoesFiltradas.map((armacao) => (
-              <div key={armacao.id} className="border rounded-lg p-3 bg-card hover:bg-accent/50 transition-colors">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold text-lg">#{armacao.numeracao}</span>
-                  <Badge className={statusBadgeStyles[armacao.status]}>
+              <div 
+                key={armacao.id} 
+                className="group relative rounded-xl p-4 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200"
+              >
+                {/* Header com numeração e status */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-700 to-slate-900 dark:from-slate-600 dark:to-slate-800 flex items-center justify-center shadow-sm">
+                      <span className="text-xs font-black text-white">#</span>
+                    </div>
+                    <span className="text-lg font-bold text-foreground">{armacao.numeracao}</span>
+                  </div>
+                  <Badge className={`${statusBadgeStyles[armacao.status]} shadow-sm`}>
                     {statusLabels[armacao.status]}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Tipo:</span>
-                    <div className="font-medium">{tipoLabels[armacao.tipo]}</div>
+                
+                {/* Detalhes */}
+                <div className="flex items-center gap-4">
+                  {/* Tipo */}
+                  <div className="flex-1 p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Tipo</div>
+                    <div className="text-sm font-semibold text-foreground">{tipoLabels[armacao.tipo]}</div>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Tamanho:</span>
-                    <div className="font-medium">{armacao.tamanho?.nome || '-'}</div>
+                  
+                  {/* Tamanho */}
+                  <div className="flex-1 p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Tamanho</div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {armacao.tamanho?.nome ? (
+                        <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold">
+                          {armacao.tamanho.nome}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
