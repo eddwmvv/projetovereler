@@ -18,7 +18,9 @@ import {
   ClipboardList,
   Plus,
   LogOut,
-  Package
+  Package,
+  Menu,
+  X
 } from 'lucide-react';
 import {
   Collapsible,
@@ -52,6 +54,9 @@ const outrosItems: NavItem[] = [
 interface SidebarProps {
   currentPage: string;
   onNavigate: (page: string) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  isMobile?: boolean;
 }
 
 // Mapear roles para labels em português
@@ -61,7 +66,7 @@ const roleLabels: Record<'admin' | 'moderator' | 'user', string> = {
   user: 'Usuário',
 };
 
-export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
+export const Sidebar = ({ currentPage, onNavigate, isOpen = true, onClose, isMobile = false }: SidebarProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [gerenCadastrosOpen, setGerenCadastrosOpen] = useState(false);
   const { user, signOut } = useAuth();
@@ -74,6 +79,13 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
       navigate('/login');
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
+    }
+  };
+
+  const handleNavigate = (page: string) => {
+    onNavigate(page);
+    if (isMobile && onClose) {
+      onClose();
     }
   };
 
@@ -94,14 +106,40 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
     : 'Carregando...';
 
   return (
-    <aside
-      className={cn(
-        'flex flex-col h-screen bg-[#eff6f8] transition-all duration-300 border-r border-gray-300',
-        collapsed ? 'w-20' : 'w-64'
+    <>
+      {/* Overlay para mobile */}
+      {isMobile && isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in"
+          onClick={onClose}
+        />
       )}
-    >
+      
+      <aside
+        className={cn(
+          'flex flex-col h-screen bg-[#eff6f8] transition-all duration-300 border-r border-gray-300',
+          // Desktop
+          'lg:relative',
+          collapsed && !isMobile ? 'lg:w-20' : 'lg:w-64',
+          // Mobile
+          'fixed top-0 left-0 z-50',
+          'w-64',
+          isMobile && !isOpen && '-translate-x-full',
+          isMobile && isOpen && 'translate-x-0'
+        )}
+      >
       {/* Logo/Brand */}
       <div className="flex items-center justify-between p-4 border-b border-gray-300 relative">
+        {/* Mobile: Botão de fechar */}
+        {isMobile && (
+          <button
+            onClick={onClose}
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-black"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+        
         {!collapsed && (
           <>
             <div className="flex items-center justify-center flex-1">
@@ -111,15 +149,17 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
                 className="h-16 w-auto transition-all duration-300"
               />
             </div>
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="absolute right-2 p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-black"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+            {!isMobile && (
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                className="absolute right-2 p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-black"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            )}
           </>
         )}
-        {collapsed && (
+        {collapsed && !isMobile && (
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="w-full p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-black flex items-center justify-center"
@@ -133,7 +173,7 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {/* Dashboard */}
         <button
-          onClick={() => onNavigate('/')}
+          onClick={() => handleNavigate('/')}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
             currentPage === '/'
@@ -142,13 +182,13 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
           )}
         >
           <LayoutDashboard className="w-5 h-5 flex-shrink-0" />
-          {!collapsed && (
+          {(!collapsed || isMobile) && (
             <span className="font-medium truncate">Dashboard</span>
           )}
         </button>
 
         {/* GEREN. CADASTROS - Menu Expansível */}
-        {!collapsed ? (
+        {(!collapsed || isMobile) ? (
           <Collapsible open={gerenCadastrosOpen} onOpenChange={setGerenCadastrosOpen}>
             <CollapsibleTrigger
               className={cn(
@@ -176,7 +216,7 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
                 return (
                   <button
                     key={item.href}
-                    onClick={() => onNavigate(item.href)}
+                    onClick={() => handleNavigate(item.href)}
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ml-4',
                       isActive
@@ -192,20 +232,22 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
             </CollapsibleContent>
           </Collapsible>
         ) : (
-          // Quando collapsed, mostrar apenas o ícone do grupo
-          <div className="relative group">
-            <button
-              className={cn(
-                'w-full flex items-center justify-center px-3 py-2.5 rounded-lg transition-all duration-200',
-                isGerenCadastrosActive
-                  ? 'bg-amber-500 text-white'
-                  : 'text-gray-700 hover:bg-gray-200 hover:text-black'
-              )}
-              title="Cadastros"
-            >
-              <ClipboardList className="w-5 h-5 flex-shrink-0" />
-            </button>
-          </div>
+          !isMobile && (
+            // Quando collapsed no desktop, mostrar apenas o ícone do grupo
+            <div className="relative group">
+              <button
+                className={cn(
+                  'w-full flex items-center justify-center px-3 py-2.5 rounded-lg transition-all duration-200',
+                  isGerenCadastrosActive
+                    ? 'bg-amber-500 text-white'
+                    : 'text-gray-700 hover:bg-gray-200 hover:text-black'
+                )}
+                title="Cadastros"
+              >
+                <ClipboardList className="w-5 h-5 flex-shrink-0" />
+              </button>
+            </div>
+          )
         )}
 
         {/* Outros Itens */}
@@ -223,7 +265,7 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
           return (
             <button
               key={item.href}
-              onClick={() => onNavigate(item.href)}
+              onClick={() => handleNavigate(item.href)}
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                 isActive
@@ -232,7 +274,7 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
               )}
             >
               <Icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && (
+              {(!collapsed || isMobile) && (
                 <span className="font-medium truncate">{item.label}</span>
               )}
             </button>
@@ -245,14 +287,14 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
       <div className="p-4 border-t border-gray-300">
         <div className={cn(
           'flex items-center gap-3',
-          collapsed && 'justify-center'
+          collapsed && !isMobile && 'justify-center'
         )}>
           <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
             <span className="text-white font-semibold text-sm">
               {userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
             </span>
           </div>
-          {!collapsed && (
+          {(!collapsed || isMobile) && (
             <div className="flex flex-col min-w-0 flex-1">
               <span className="font-medium text-gray-900 truncate">
                 {profileLoading ? 'Carregando...' : userName}
@@ -262,7 +304,7 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
               </span>
             </div>
           )}
-          {!collapsed && (
+          {(!collapsed || isMobile) && (
             <button
               onClick={handleLogout}
               className="p-2 rounded-lg hover:bg-gray-200 transition-colors text-gray-600 hover:text-black"
@@ -274,5 +316,6 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
         </div>
       </div>
     </aside>
+    </>
   );
 };
