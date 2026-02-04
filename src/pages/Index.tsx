@@ -9,6 +9,7 @@ import { TurmasPage } from '@/pages/TurmasPage';
 import { AlunosPage } from '@/pages/AlunosPage';
 import { RelatoriosPage } from '@/pages/RelatoriosPage';
 import { EstoqueArmacoesPage } from '@/pages/EstoqueArmacoesPage';
+import { LotesPage } from '@/pages/LotesPage';
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState('/');
@@ -31,6 +32,8 @@ const Index = () => {
         return <AlunosPage />;
       case '/estoque-armacoes':
         return <EstoqueArmacoesPage />;
+      case '/lotes':
+        return <LotesPage />;
       case '/relatorios':
         return <RelatoriosPage />;
       default:

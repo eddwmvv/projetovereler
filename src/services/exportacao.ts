@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Canvg } from 'canvg';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -27,6 +28,53 @@ const generoLabels: Record<string, string> = {
   outro: 'Outro',
   nao_informado: 'Não Informado',
 };
+
+type JsPDFAutoTableState = { finalY: number };
+type JsPDFWithAutoTable = jsPDF & { lastAutoTable?: JsPDFAutoTableState };
+
+export type LotePdfData = {
+  numeroLote: string;
+  escola: string;
+  municipio?: string;
+  turno: string;
+  descricao?: string;
+  observacoes?: string;
+  itens: Array<{ tamanho: string; quantidade: number; observacoes?: string }>;
+  totalOculos: number;
+  geradoEm?: Date;
+};
+
+async function carregarLogoComoPngDataUrl(
+  svgPath: string,
+  larguraPx: number,
+  alturaPx: number
+): Promise<string | null> {
+  try {
+    const resp = await fetch(svgPath);
+    if (!resp.ok) return null;
+
+    const svgText = await resp.text();
+    const canvas = document.createElement('canvas');
+    canvas.width = larguraPx;
+    canvas.height = alturaPx;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    const v = await Canvg.fromString(ctx, svgText, {
+      ignoreAnimation: true,
+      ignoreMouse: true,
+      ignoreClear: true,
+      scaleWidth: larguraPx,
+      scaleHeight: alturaPx,
+    });
+
+    await v.render();
+    return canvas.toDataURL('image/png');
+  } catch {
+    return null;
+  }
+}
 
 // Funções auxiliares para desenhar gráficos no PDF
 function desenharGraficoBarras(
@@ -783,5 +831,130 @@ export const exportacaoService = {
     worksheet['!cols'] = colWidths;
 
     XLSX.writeFile(workbook, `${nomeArquivo}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  },
+
+  // Exportar Lote de Óculos para PDF (A4)
+  async exportarLotePDF(dados: LotePdfData): Promise<void> {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    }) as JsPDFWithAutoTable;
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Logo centralizada
+    const logoPath = `${import.meta.env.BASE_URL}logo.svg`;
+    const logoPng = await carregarLogoComoPngDataUrl(logoPath, 800, 300);
+    let yPos = 12;
+
+    if (logoPng) {
+      const logoW = 55;
+      const logoH = 20;
+      const logoX = (pageWidth - logoW) / 2;
+      doc.addImage(logoPng, 'PNG', logoX, yPos, logoW, logoH);
+      yPos += logoH + 8;
+    }
+
+    // Destaques (maiores): Número do Lote, Escola, Turno
+    doc.setTextColor(0, 0, 0);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.text(dados.numeroLote, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 10;
+
+    doc.setFontSize(18);
+    doc.text(dados.escola, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 8;
+
+    doc.setFontSize(16);
+    doc.text(`Turno: ${dados.turno}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 10;
+
+    // Tabela: Dados do lote
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Dados do Lote', 14, yPos);
+    yPos += 4;
+
+    const geradoEm = dados.geradoEm ?? new Date();
+    const linhasDados: Array<[string, string]> = [
+      ['Número do lote', dados.numeroLote],
+      ['Escola', dados.escola],
+      ...(dados.municipio ? ([['Município', dados.municipio]] as Array<[string, string]>) : []),
+      ['Turno', dados.turno],
+      ['Total de óculos', String(dados.totalOculos)],
+      ['Descrição', dados.descricao?.trim() || '-'],
+      ['Observações', dados.observacoes?.trim() || '-'],
+      [
+        'Gerado em',
+        format(geradoEm, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }),
+      ],
+    ];
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Campo', 'Valor']],
+      body: linhasDados,
+      theme: 'striped',
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: [30, 64, 175] },
+      columnStyles: {
+        0: { cellWidth: 45 },
+        1: { cellWidth: pageWidth - 28 - 45 },
+      },
+    });
+
+    yPos = (doc.lastAutoTable?.finalY ?? yPos) + 8;
+
+    // Tabela: Itens
+    if (yPos > pageHeight - 60) {
+      doc.addPage();
+      yPos = 20;
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Itens do Lote', 14, yPos);
+    yPos += 4;
+
+    const itensBody = dados.itens.map((i) => [
+      i.tamanho,
+      String(i.quantidade),
+      i.observacoes?.trim() || '-',
+    ]);
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Tamanho', 'Quantidade', 'Observações']],
+      body: itensBody,
+      theme: 'striped',
+      styles: { fontSize: 10, cellPadding: 2 },
+      headStyles: { fillColor: [30, 64, 175] },
+      columnStyles: {
+        0: { cellWidth: 45 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: pageWidth - 28 - 45 - 25 },
+      },
+    });
+
+    // Rodapé com paginação
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.text(
+        `Página ${i} de ${totalPages}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+
+    const nomeArquivo = `lote_${dados.numeroLote.replace(/[^a-z0-9]/gi, '_')}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+    doc.save(nomeArquivo);
   },
 };

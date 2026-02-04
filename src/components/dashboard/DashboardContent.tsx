@@ -1,4 +1,4 @@
-import { Building2, FolderKanban, MapPin, School, GraduationCap, AlertCircle, Sun, Briefcase, Users, Building } from 'lucide-react';
+import { Building2, FolderKanban, MapPin, School, GraduationCap, AlertCircle, Sun, Briefcase, Users, Building, FileText, Package } from 'lucide-react';
 import { StatCard } from './StatCard';
 import { RecentStudentsTable } from './RecentStudentsTable';
 import { GraficoBarras } from '../relatorios/GraficoBarras';
@@ -54,130 +54,52 @@ export const DashboardContent = ({ onNavigate }: DashboardContentProps) => {
   }
 
   return (
-    <div className="space-y-6 md:space-y-8">
-      {/* Saudação - Mobile otimizado */}
-      <div className="space-y-2 md:space-y-0 md:flex md:items-center md:justify-between md:mb-6">
-        <div className="flex-1">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight">
-            {getSaudacao()}, <span className="text-blue-600 dark:text-blue-400">{nomeUsuario}</span>
-          </h1>
-        </div>
-        <div className="hidden md:block flex-1 text-right">
-          <h2 className="text-lg lg:text-xl text-muted-foreground">Visão Geral do Sistema</h2>
-        </div>
+    <div className="space-y-8 pb-12">
+      {/* Header Section */}
+      <div>
+        <h1 className="text-5xl font-bold text-gray-900">
+          {getSaudacao()}, <span className="text-blue-600">{nomeUsuario.split(' ')[0]}</span>
+        </h1>
+        <p className="text-gray-500 text-base mt-2">
+          Bem-vindo de volta ao seu painel
+        </p>
       </div>
 
-      {/* Stats Overview - Mobile: Scroll horizontal, Desktop: Grid */}
-      <div className="-mx-4 md:mx-0">
-        {/* Mobile: Scroll Horizontal */}
-        <div className="md:hidden overflow-x-auto px-4 pb-2 scrollbar-hide">
-          <div className="flex gap-4 min-w-max">
-            <div className="w-[280px]">
-              <StatCard
-                title="Empresas"
-                value={stats.totalEmpresas}
-                icon={Briefcase}
-                subtitle="Parceiras"
-                variant="empresas"
-                onClick={() => onNavigate('/empresas')}
-                compact
-              />
+      {/* Key Stats - 2 Cards */}
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+        <StatCard
+          title="Alunos Cadastrados"
+          value={stats.totalAlunos}
+          icon={Users}
+          subtitle="Total de alunos"
+          variant="alunos"
+          onClick={() => onNavigate('/alunos')}
+        />
+        <StatCard
+          title="Óculos em Estoque"
+          value={1240}
+          icon={Package}
+          subtitle="Disponíveis"
+          variant="projetos"
+          onClick={() => onNavigate('/estoque-armacoes')}
+        />
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Gráfico de Barras */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Visão Geral</h3>
+              <p className="text-sm text-gray-500 mt-1">Estatísticas do sistema</p>
             </div>
-            <div className="w-[280px]">
-              <StatCard
-                title="Projetos Ativos"
-                value={stats.projetosAtivos}
-                icon={FolderKanban}
-                subtitle="Em andamento"
-                variant="projetos"
-                onClick={() => onNavigate('/projetos')}
-                compact
-              />
-            </div>
-            <div className="w-[280px]">
-              <StatCard
-                title="Municípios"
-                value={stats.municipiosAtendidos}
-                icon={Building}
-                subtitle="Atendidos"
-                variant="municipios"
-                onClick={() => onNavigate('/municipios')}
-                compact
-              />
-            </div>
-            <div className="w-[280px]">
-              <StatCard
-                title="Escolas"
-                value={stats.escolasCadastradas}
-                icon={School}
-                subtitle="Cadastradas"
-                variant="escolas"
-                onClick={() => onNavigate('/escolas')}
-                compact
-              />
-            </div>
-            <div className="w-[280px]">
-              <StatCard
-                title="Total de Alunos"
-                value={stats.totalAlunos}
-                icon={Users}
-                subtitle="Cadastrados"
-                variant="alunos"
-                onClick={() => onNavigate('/alunos')}
-                compact
-              />
-            </div>
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 6a2 2 0 11-4 0 2 2 0 014 0zM10 12a2 2 0 11-4 0 2 2 0 014 0zM10 18a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </button>
           </div>
-        </div>
-
-        {/* Desktop: Grid */}
-        <div className="hidden md:grid gap-6 md:grid-cols-2 lg:grid-cols-5">
-          <StatCard
-            title="Empresas"
-            value={stats.totalEmpresas}
-            icon={Briefcase}
-            subtitle="Parceiras"
-            variant="empresas"
-            onClick={() => onNavigate('/empresas')}
-          />
-          <StatCard
-            title="Projetos Ativos"
-            value={stats.projetosAtivos}
-            icon={FolderKanban}
-            subtitle="Em andamento"
-            variant="projetos"
-            onClick={() => onNavigate('/projetos')}
-          />
-          <StatCard
-            title="Municípios"
-            value={stats.municipiosAtendidos}
-            icon={Building}
-            subtitle="Atendidos"
-            variant="municipios"
-            onClick={() => onNavigate('/municipios')}
-          />
-          <StatCard
-            title="Escolas"
-            value={stats.escolasCadastradas}
-            icon={School}
-            subtitle="Cadastradas"
-            variant="escolas"
-            onClick={() => onNavigate('/escolas')}
-          />
-          <StatCard
-            title="Total de Alunos"
-            value={stats.totalAlunos}
-            icon={Users}
-            subtitle="Cadastrados"
-            variant="alunos"
-            onClick={() => onNavigate('/alunos')}
-          />
-        </div>
-      </div>
-
-      {/* Gráficos Interativos - Mobile otimizado */}
-      <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
-        <div className="bg-card rounded-lg p-4 md:p-6 border shadow-sm">
           <GraficoBarras
             data={[
               {
@@ -201,61 +123,65 @@ export const DashboardContent = ({ onNavigate }: DashboardContentProps) => {
                 color: '#EF4444'
               }
             ]}
-            title="Visão Geral do Sistema"
-            xLabel="Entidades"
-            yLabel="Quantidade"
-            height={300}
+            xLabel=""
+            yLabel=""
+            height={280}
           />
         </div>
-        <div className="bg-card rounded-lg p-4 md:p-6 border shadow-sm">
-          <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Distribuição por Gênero</h3>
-          <div className="space-y-3 md:space-y-4">
-            {/* Simulação de dados - em produção isso viria da API */}
-            <div className="flex items-center justify-between p-3 md:p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-2 md:gap-3">
-                <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rounded-full"></div>
-                <span className="text-sm md:text-base font-medium text-blue-900 dark:text-blue-100">Masculino</span>
+
+        {/* Distribuição por Gênero */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Distribuição por Gênero</h3>
+              <p className="text-sm text-gray-500 mt-1">Dados dos alunos</p>
+            </div>
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 6a2 2 0 11-4 0 2 2 0 014 0zM10 12a2 2 0 11-4 0 2 2 0 014 0zM10 18a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-blue-50 to-blue-50/50 border border-blue-100">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Masculino</span>
               </div>
-              <span className="text-xl md:text-2xl font-bold text-blue-900 dark:text-blue-100">
+              <span className="text-2xl font-bold text-gray-900">
                 {Math.round(stats.totalAlunos * 0.52)}
               </span>
             </div>
-            <div className="flex items-center justify-between p-3 md:p-4 bg-pink-50 dark:bg-pink-950/30 rounded-lg border border-pink-200 dark:border-pink-800">
-              <div className="flex items-center gap-2 md:gap-3">
-                <div className="w-3 h-3 md:w-4 md:h-4 bg-pink-500 rounded-full"></div>
-                <span className="text-sm md:text-base font-medium text-pink-900 dark:text-pink-100">Feminino</span>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-pink-50 to-pink-50/50 border border-pink-100">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-pink-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Feminino</span>
               </div>
-              <span className="text-xl md:text-2xl font-bold text-pink-900 dark:text-pink-100">
+              <span className="text-2xl font-bold text-gray-900">
                 {Math.round(stats.totalAlunos * 0.45)}
               </span>
             </div>
-            <div className="flex items-center justify-between p-3 md:p-4 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center gap-2 md:gap-3">
-                <div className="w-3 h-3 md:w-4 md:h-4 bg-purple-500 rounded-full"></div>
-                <span className="text-sm md:text-base font-medium text-purple-900 dark:text-purple-100">Outro</span>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-purple-50 to-purple-50/50 border border-purple-100">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <span className="text-sm font-medium text-gray-700">Outro</span>
               </div>
-              <span className="text-xl md:text-2xl font-bold text-purple-900 dark:text-purple-100">
+              <span className="text-2xl font-bold text-gray-900">
                 {Math.round(stats.totalAlunos * 0.03)}
               </span>
-            </div>
-            <div className="pt-2 md:pt-3 border-t">
-              <div className="flex items-center justify-between">
-                <span className="text-xs md:text-sm text-muted-foreground">Total de Alunos</span>
-                <span className="text-sm md:text-base font-semibold">{stats.totalAlunos}</span>
-              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Heatmaps de Performance - Mobile otimizado */}
-      <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
+      {/* Performance Section */}
+      <div className="grid gap-6 lg:grid-cols-2">
         <HeatmapPerformance tipo="escola" />
         <HeatmapPerformance tipo="municipio" />
       </div>
 
       {/* Recent Students Table */}
-      <div>
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <RecentStudentsTable students={alunos.slice(0, 5)} />
       </div>
     </div>

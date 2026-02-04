@@ -20,6 +20,16 @@ type ArmaçãoRow = {
   updated_at: string;
 };
 
+type ArmacaoMovimentacaoInsert = {
+  armacao_id: string;
+  usuario_id: string | null;
+  acao: string;
+  campo: string;
+  valor_anterior: string | null;
+  valor_novo: string | null;
+  observacoes: string | null;
+};
+
 type ArmaçãoHistoricoRow = {
   id: string;
   'armacão_id': string; // Nome da coluna no banco (com acento)
@@ -144,6 +154,39 @@ export const armacoesService = {
       ...transformArmação(row as ArmaçãoRow),
       tamanho: row.tamanho ? transformTamanho(row.tamanho) : undefined,
     }));
+  },
+
+  // Paginated version for better performance
+  async getPaginated(page: number = 1, limit: number = 50): Promise<{ data: Armação[]; total: number }> {
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    // Get data
+    const { data, error } = await (supabase as any)
+      .from('armacoes')
+      .select(`
+        *,
+        tamanho:tamanhos(*)
+      `)
+      .range(from, to)
+      .order('numeracao', { ascending: true });
+
+    if (error) throw error;
+
+    // Get total count
+    const { count, error: countError } = await (supabase as any)
+      .from('armacoes')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) throw countError;
+
+    return {
+      data: (data || []).map((row: any) => ({
+        ...transformArmação(row as ArmaçãoRow),
+        tamanho: row.tamanho ? transformTamanho(row.tamanho) : undefined,
+      })),
+      total: count || 0,
+    };
   },
 
   async getDisponiveis(): Promise<Armação[]> {
@@ -336,6 +379,83 @@ export const armacoesService = {
 
     if (error) throw error;
     return (data || []).map(transformArmaçãoHistorico);
+  },
+
+  // ===== ESTOQUE (edição manual) =====
+  async updateArmacaoComAuditoria(params: {
+    armacaoId: string;
+    usuarioId: string;
+    acao: 'alteracao' | 'saida';
+    statusAnterior: ArmaçãoStatus;
+    statusNovo?: ArmaçãoStatus;
+    tamanhoIdAnterior?: string | null;
+    tamanhoAnterior?: string | null;
+    tamanhoNovo?: string | null;
+    tamanhoIdNovo?: string | null;
+    observacoes?: string;
+  }): Promise<void> {
+    const updates: Record<string, unknown> = {};
+    const movimentacoes: ArmacaoMovimentacaoInsert[] = [];
+
+    if (params.statusNovo && params.statusNovo !== params.statusAnterior) {
+      updates.status = params.statusNovo;
+      movimentacoes.push({
+        armacao_id: params.armacaoId,
+        usuario_id: params.usuarioId,
+        acao: params.acao,
+        campo: 'status',
+        valor_anterior: params.statusAnterior,
+        valor_novo: params.statusNovo,
+        observacoes: params.observacoes || null,
+      });
+    }
+
+    if (typeof params.tamanhoIdNovo !== 'undefined') {
+      // tamanhoIdNovo pode ser string (UUID) ou null (sem tamanho)
+      updates.tamanho_id = params.tamanhoIdNovo;
+
+      const anterior = params.tamanhoAnterior ?? null;
+      const novo = params.tamanhoNovo ?? null;
+      if (anterior !== novo) {
+        movimentacoes.push({
+          armacao_id: params.armacaoId,
+          usuario_id: params.usuarioId,
+          acao: params.acao,
+          campo: 'tamanho',
+          valor_anterior: anterior,
+          valor_novo: novo,
+          observacoes: params.observacoes || null,
+        });
+      }
+    }
+
+    // Se nada mudou, não faz nada
+    if (Object.keys(updates).length === 0) return;
+
+    const rollback: Record<string, unknown> = {};
+    if (typeof updates.status !== 'undefined') rollback.status = params.statusAnterior;
+    if (typeof updates.tamanho_id !== 'undefined') rollback.tamanho_id = params.tamanhoIdAnterior ?? null;
+
+    const { error: updateError } = await (supabase as any)
+      .from('armacoes')
+      .update(updates)
+      .eq('id', params.armacaoId);
+
+    if (updateError) throw updateError;
+
+    if (movimentacoes.length > 0) {
+      const { error: movError } = await (supabase as any)
+        .from('armacoes_movimentacoes')
+        .insert(movimentacoes);
+
+      if (movError) {
+        // Se não conseguiu registrar a auditoria, tenta reverter a mudança.
+        if (Object.keys(rollback).length > 0) {
+          await (supabase as any).from('armacoes').update(rollback).eq('id', params.armacaoId);
+        }
+        throw movError;
+      }
+    }
   },
 
   // ===== IMPORTAÇÃO EM MASSA =====

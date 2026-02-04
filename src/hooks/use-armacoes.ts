@@ -1,12 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { armacoesService, processarImportacaoArmacoes } from '@/services/armacoes';
-import { Armação, ArmaçãoHistorico, ArmaçãoTipo, Tamanho } from '@/types';
+import { Armação, ArmaçãoHistorico, ArmaçãoTipo, ArmaçãoStatus, Tamanho } from '@/types';
 import { toast } from '@/hooks/use-toast';
 
 export function useArmacoes() {
   return useQuery<Armação[]>({
     queryKey: ['armacoes'],
     queryFn: () => armacoesService.getAll(),
+  });
+}
+
+// Paginated version for better performance with large datasets
+export function useArmacoesPaginated(page: number = 1, limit: number = 50) {
+  return useQuery({
+    queryKey: ['armacoes', 'paginated', page, limit],
+    queryFn: () => armacoesService.getPaginated(page, limit),
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 }
 
@@ -50,6 +59,48 @@ export function useCreateArmação() {
       toast({
         title: 'Erro',
         description: error.message || 'Erro ao cadastrar armação.',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useUpdateArmacaoComAuditoria() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: {
+      armacao: Pick<Armação, 'id' | 'status' | 'tamanhoId'> & { tamanho?: Tamanho };
+      usuarioId: string;
+      acao: 'alteracao' | 'saida';
+      statusNovo?: ArmaçãoStatus;
+      tamanhoIdNovo?: string | null;
+      tamanhoNovoNome?: string | null;
+      observacoes?: string;
+    }) =>
+      armacoesService.updateArmacaoComAuditoria({
+        armacaoId: input.armacao.id,
+        usuarioId: input.usuarioId,
+        acao: input.acao,
+        statusAnterior: input.armacao.status,
+        statusNovo: input.statusNovo,
+        tamanhoIdAnterior: input.armacao.tamanhoId ?? null,
+        tamanhoAnterior: input.armacao.tamanho?.nome || null,
+        tamanhoNovo: input.tamanhoNovoNome ?? null,
+        tamanhoIdNovo: typeof input.tamanhoIdNovo === 'undefined' ? undefined : input.tamanhoIdNovo,
+        observacoes: input.observacoes,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['armacoes'] });
+      toast({
+        title: 'Sucesso!',
+        description: 'Armação atualizada com sucesso.',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao atualizar armação.',
         variant: 'destructive',
       });
     },

@@ -17,8 +17,8 @@ export const DashboardLayout = ({
   const { isMobile } = useMobileSidebar();
   
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar apenas para desktop */}
+    <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
+      {/* Header/Navbar apenas para desktop */}
       {!isMobile && (
         <Sidebar 
           currentPage={currentPage} 
@@ -28,16 +28,28 @@ export const DashboardLayout = ({
         />
       )}
       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-auto p-4 md:p-6 bg-background pb-20 lg:pb-6">
-          {children}
-        </main>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar apenas para mobile */}
+        {isMobile && (
+          <Sidebar 
+            currentPage={currentPage} 
+            onNavigate={onNavigate}
+            isOpen={true}
+            isMobile={true}
+          />
+        )}
         
-        {/* Bottom Navigation apenas para mobile */}
-        <BottomNavigation 
-          currentPage={currentPage}
-          onNavigate={onNavigate}
-        />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-auto p-6 md:p-8 pb-20 lg:pb-6">
+            {children}
+          </main>
+          
+          {/* Bottom Navigation apenas para mobile */}
+          <BottomNavigation 
+            currentPage={currentPage}
+            onNavigate={onNavigate}
+          />
+        </div>
       </div>
     </div>
   );

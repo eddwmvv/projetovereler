@@ -35,59 +35,66 @@ export const RecentStudentsTable = ({ students }: RecentStudentsTableProps) => {
       <CardHeader className="pb-2 md:pb-3">
         <CardTitle className="text-base md:text-lg font-semibold">Alunos Recentes</CardTitle>
       </CardHeader>
-      <CardContent className="p-3 md:p-6 pt-0 md:pt-0">
+      <CardContent className="p-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Alunos Recentes</h3>
+          <p className="text-sm text-gray-500 mt-1">Últimos cadastros do sistema</p>
+        </div>
+
         {/* Desktop: Tabela */}
         <div className="hidden md:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Fase Atual</TableHead>
-                <TableHead>Data Cadastro</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {students.map((student) => (
-                <TableRow key={student.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell className="font-medium">{student.nomeCompleto}</TableCell>
-                  <TableCell>
-                    <Badge className={cn('font-medium', phaseBadgeStyles[student.faseAtual])}>
-                      {phaseLabels[student.faseAtual]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {student.createdAt.toLocaleDateString('pt-BR')}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="space-y-1 divide-y divide-gray-100">
+            {students.length === 0 ? (
+              <div className="text-center py-8 text-sm text-gray-500">
+                Nenhum aluno cadastrado recentemente
+              </div>
+            ) : (
+              students.map((student) => (
+                <div 
+                  key={student.id}
+                  className="py-4 px-2 flex items-center justify-between hover:bg-gray-50 transition-colors cursor-pointer rounded-lg"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{student.nomeCompleto}</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {student.createdAt.toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                  <Badge className={cn('font-medium text-xs ml-4 shrink-0', phaseBadgeStyles[student.faseAtual])}>
+                    {phaseLabels[student.faseAtual]}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {/* Mobile: Cards */}
         <div className="md:hidden space-y-2">
-          {students.map((student) => (
-            <div 
-              key={student.id} 
-              className="p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{student.nomeCompleto}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {student.createdAt.toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-                <Badge className={cn('font-medium text-xs shrink-0', phaseBadgeStyles[student.faseAtual])}>
-                  {phaseLabels[student.faseAtual]}
-                </Badge>
-              </div>
-            </div>
-          ))}
-          {students.length === 0 && (
-            <div className="text-center py-6 text-sm text-muted-foreground">
+          {students.length === 0 ? (
+            <div className="text-center py-8 text-sm text-gray-500">
               Nenhum aluno cadastrado recentemente
             </div>
+          ) : (
+            students.map((student) => (
+              <div 
+                key={student.id} 
+                className="p-4 rounded-lg border border-gray-100 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-gray-900">{student.nomeCompleto}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {student.createdAt.toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                  <Badge className={cn('font-medium text-xs shrink-0', phaseBadgeStyles[student.faseAtual])}>
+                    {phaseLabels[student.faseAtual]}
+                  </Badge>
+                </div>
+              </div>
+            ))
           )}
         </div>
       </CardContent>
