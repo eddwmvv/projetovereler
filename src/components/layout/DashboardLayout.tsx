@@ -14,7 +14,7 @@ export const DashboardLayout = ({
   currentPage,
   onNavigate,
 }: DashboardLayoutProps) => {
-  const { isMobile } = useMobileSidebar();
+  const { isMobile, isOpen, close } = useMobileSidebar();
   
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-gray-50">
@@ -34,8 +34,9 @@ export const DashboardLayout = ({
           <Sidebar 
             currentPage={currentPage} 
             onNavigate={onNavigate}
-            isOpen={true}
+            isOpen={isOpen}
             isMobile={true}
+            onClose={close}
           />
         )}
         

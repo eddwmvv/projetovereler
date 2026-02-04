@@ -6,6 +6,7 @@ import { HeatmapPerformance } from './HeatmapPerformance';
 import { useDashboardStats } from '@/hooks/use-dashboard';
 import { useAlunos } from '@/hooks/use-alunos';
 import { useProfile } from '@/hooks/use-profile';
+import { useArmacoesDisponiveis } from '@/hooks/use-armacoes';
 import { StudentPhase } from '@/types';
 import { LoadingState } from '@/components/shared/LoadingState';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -18,6 +19,7 @@ export const DashboardContent = ({ onNavigate }: DashboardContentProps) => {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: alunos = [], isLoading: alunosLoading } = useAlunos();
   const { data: profile } = useProfile();
+  const { data: armacoesDisponiveis = [] } = useArmacoesDisponiveis();
 
   // Função para obter saudação baseada no horário
   const getSaudacao = () => {
@@ -77,7 +79,7 @@ export const DashboardContent = ({ onNavigate }: DashboardContentProps) => {
         />
         <StatCard
           title="Óculos em Estoque"
-          value={1240}
+          value={armacoesDisponiveis.length}
           icon={Package}
           subtitle="Disponíveis"
           variant="projetos"

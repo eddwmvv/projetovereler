@@ -63,8 +63,9 @@ export function EstoqueArmacoesPage() {
   
   // Carregar dados paginados para a lista (otimização de performance)
   const { data: dadosPaginated } = useArmacoesPaginated(paginaAtual, ITENS_POR_PAGINA);
-  const armacoes = dadosPaginated?.data || [];
-  const totalArmacoes = dadosPaginated?.total || 0;
+  // Usar todasArmacoes para filtragem completa
+  const armacoes = todasArmacoes;
+  const totalArmacoes = todasArmacoes.length;
   
   const createArmação = useCreateArmação();
   const { data: tamanhos = [] } = useTamanhos();
@@ -320,39 +321,9 @@ export function EstoqueArmacoesPage() {
 
   return (
     <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Estoque</h1>
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-            {totalArmacoes}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setImportDialogOpen(true)}
-            className="flex-1 md:flex-none"
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Importar</span>
-            <span className="sm:hidden">Import</span>
-          </Button>
-          <Button 
-            size="sm"
-            onClick={() => setCreateDialogOpen(true)}
-            className="flex-1 md:flex-none"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Nova</span>
-            <span className="sm:hidden">Novo</span>
-          </Button>
-        </div>
-      </div>
-
       {/* Filtros - Layout Responsivo */}
-      <div className="space-y-3">
+      {/* Mobile: filtros acima do resumo por tamanho */}
+      <div className="space-y-3 md:hidden">
         {/* Busca - sempre em destaque */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -363,9 +334,8 @@ export function EstoqueArmacoesPage() {
             className="pl-9"
           />
         </div>
-        
         {/* Filtros em grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Select
             value={filtroStatus}
             onValueChange={(v) => setFiltroStatus(v as ArmaçãoStatus | 'all')}
@@ -382,7 +352,6 @@ export function EstoqueArmacoesPage() {
               ))}
             </SelectContent>
           </Select>
-          
           <Select
             value={filtroTipo}
             onValueChange={(v) => setFiltroTipo(v as ArmaçãoTipo | 'all')}
@@ -399,7 +368,6 @@ export function EstoqueArmacoesPage() {
               ))}
             </SelectContent>
           </Select>
-          
           <Select
             value={filtroTamanho}
             onValueChange={aplicarFiltroTamanho}
@@ -417,9 +385,80 @@ export function EstoqueArmacoesPage() {
               ))}
             </SelectContent>
           </Select>
-          
           {hasActiveFilters && (
             <Button variant="outline" size="sm" onClick={clearFilters} className="w-full">
+              <X className="w-4 h-4 mr-2" />
+              Limpar
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop: filtros abaixo do resumo por tamanho */}
+      <div className="hidden md:block">
+        {/* Resumo por tamanho já está acima */}
+        {/* Busca e filtros em grid */}
+        <div className="flex gap-2 mb-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por numeração..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select
+            value={filtroStatus}
+            onValueChange={(v) => setFiltroStatus(v as ArmaçãoStatus | 'all')}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {Object.entries(statusLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={filtroTipo}
+            onValueChange={(v) => setFiltroTipo(v as ArmaçãoTipo | 'all')}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              {Object.entries(tipoLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={filtroTamanho}
+            onValueChange={aplicarFiltroTamanho}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Tamanho" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="none">Sem tamanho</SelectItem>
+              {tamanhos.map((tamanho) => (
+                <SelectItem key={tamanho.id} value={tamanho.id}>
+                  {tamanho.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={clearFilters}>
               <X className="w-4 h-4 mr-2" />
               Limpar
             </Button>

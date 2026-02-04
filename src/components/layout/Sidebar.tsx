@@ -123,9 +123,13 @@ export const Sidebar = ({ currentPage, onNavigate, isOpen = true, onClose, isMob
             </button>
 
             {/* Cadastros Dropdown */}
-            <div className="relative group">
+            <div
+              className="relative group"
+              onMouseEnter={() => !isMobile && setGerenCadastrosOpen(true)}
+              onMouseLeave={() => !isMobile && setGerenCadastrosOpen(false)}
+            >
               <button
-                onClick={() => setGerenCadastrosOpen(!gerenCadastrosOpen)}
+                onClick={() => isMobile && setGerenCadastrosOpen(!gerenCadastrosOpen)}
                 className={cn(
                   'flex items-center gap-2 px-3 py-2 rounded-lg transition-all font-medium text-sm whitespace-nowrap',
                   gerenCadastrosOpen || isGerenCadastrosActive
@@ -144,7 +148,6 @@ export const Sidebar = ({ currentPage, onNavigate, isOpen = true, onClose, isMob
                     {gerenciamentoItems.map((item) => {
                       const Icon = item.icon;
                       const isActive = currentPage === item.href;
-                      
                       return (
                         <button
                           key={item.href}

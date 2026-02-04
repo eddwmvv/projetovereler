@@ -66,6 +66,7 @@ type UpdateAlunoInput = {
 
 export const alunosService = {
   ...alunosServiceBase,
+  importarAlunosEmMassa,
   
   async create(input: CreateAlunoInput): Promise<Aluno> {
     // Buscar dados da escola para obter municipioId, empresaId e projetos
@@ -253,8 +254,7 @@ async function obterOuCriarTurma(
       .select('id')
       .eq('escola_id', escolaId)
       .eq('nome', nomeTurma)
-      .eq('ano_letivo', ano)
-      .eq('ativo', true);
+      .eq('ano_letivo', ano);
 
     if (buscaError) throw buscaError;
 

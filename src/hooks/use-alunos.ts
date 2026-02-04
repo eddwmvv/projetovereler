@@ -136,7 +136,7 @@ export function useImportarAlunos() {
       municipioId: string;
       projetoId: string;
       empresaId: string;
-    }) => import('@/services/alunos').importarAlunosEmMassa(alunos, escolaId, municipioId, projetoId, empresaId),
+    }) => alunosService.importarAlunosEmMassa(alunos, escolaId, municipioId, projetoId, empresaId),
     onSuccess: () => {
       // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: ['alunos'] });
